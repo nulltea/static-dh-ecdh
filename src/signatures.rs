@@ -3,7 +3,7 @@
 use core::convert::TryFrom;
 use core::convert::TryInto;
 
-use p256::ecdsa::{signature::Signer, signature::Verifier, Signature, SigningKey, VerifyingKey};
+use k256::ecdsa::{signature::Signer, signature::Verifier, Signature, SigningKey, VerifyingKey};
 use p256::EncodedPoint;
 use p384::NistP384;
 

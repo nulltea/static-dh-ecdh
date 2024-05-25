@@ -12,7 +12,6 @@ pub mod dh;
 /// A module to import Hash Types from RustCrypto
 pub mod digest;
 /// ECDSA implementation
-pub mod signatures;
 pub mod constants;
 
 
@@ -47,8 +46,8 @@ impl fmt::Display for CryptoError {
     }   
 }
 
-impl From<p256::elliptic_curve::Error> for CryptoError {
-    fn from(_error: p256::elliptic_curve::Error) -> Self {
+impl From<k256::elliptic_curve::Error> for CryptoError {
+    fn from(_error: k256::elliptic_curve::Error) -> Self {
         CryptoError::ECCError
     }
 }

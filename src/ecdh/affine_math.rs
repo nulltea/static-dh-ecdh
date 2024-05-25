@@ -10,7 +10,6 @@ use p384::EncodedPoint;
 use crate::digest::SHA384Digest;
 use crate::{constants, dh};
 use crate::{Result, CryptoError};
-use rand;
 
 use super::ecdh::{PkP384, SharedSecretP384};
 
@@ -311,54 +310,54 @@ impl<const N: usize> ECSignerType<N> {
     /// As k is a random integer, signatures produced by this func are non-determinstic
     ///
     /// Note: `RNG` used here is `NOT` cryptographically secure.
-    pub fn sign(data: &[u8], sk: &[u8]) -> (BigInt, BigInt) {
-        let hash_type = match N {
-            48 => SHA384Digest,
-            _ => unimplemented!(),
-        };
+    // pub fn sign(data: &[u8], sk: &[u8]) -> (BigInt, BigInt) {
+    //     let hash_type = match N {
+    //         48 => SHA384Digest,
+    //         _ => unimplemented!(),
+    //     };
 
-        let (a, b, modp, g_ord) = match N {
-            48 => get_p384_constants(),
-            _ => unimplemented!(),
-        };
-        let digest = hash_type.digest(data);
-        let e = BigInt::from_bytes_be(Sign::Plus, &digest); // what is `z's` bit-length,
-        let z = e; // do we need this - if e.bits() != 8 * N
-                   // {panic!("Ln must be equal to {:?} not {:?}", N * 8, e.bits())};
-        let mut r: BigInt = Zero::zero();
-        let mut s: BigInt = Zero::zero();
-        while &r == &BigInt::from(0) || &s == &BigInt::from(0) {
-            let mut rng = rand::thread_rng();
-            let k = rng.gen_biguint((N * 8 as usize) as usize) % &g_ord.to_biguint().unwrap();
-            if k < BigUint::from(1u8) || k > &g_ord.to_biguint().unwrap() - BigUint::from(1u8) {
-                panic!("k has to be within group order")
-            };
-            let gen = MyAffinePoint::<N>::generator();
-            let k_mul = match gen {
-                APTypes::P384(gen) => MyAffinePoint::<48>::double_and_add(
-                    // Scalar multiplication of k with Generator point for the curve
-                    gen,
-                    k.clone(),
-                    &a,
-                    &b,
-                    &modp,
-                ),
-                _ => unimplemented!(),
-            };
+    //     let (a, b, modp, g_ord) = match N {
+    //         48 => get_p384_constants(),
+    //         _ => unimplemented!(),
+    //     };
+    //     let digest = hash_type.digest(data);
+    //     let e = BigInt::from_bytes_be(Sign::Plus, &digest); // what is `z's` bit-length,
+    //     let z = e; // do we need this - if e.bits() != 8 * N
+    //                // {panic!("Ln must be equal to {:?} not {:?}", N * 8, e.bits())};
+    //     let mut r: BigInt = Zero::zero();
+    //     let mut s: BigInt = Zero::zero();
+    //     while &r == &BigInt::from(0) || &s == &BigInt::from(0) {
+    //         let mut rng = rand::thread_rng();
+    //         let k = rng.gen_biguint((N * 8 as usize) as usize) % &g_ord.to_biguint().unwrap();
+    //         if k < BigUint::from(1u8) || k > &g_ord.to_biguint().unwrap() - BigUint::from(1u8) {
+    //             panic!("k has to be within group order")
+    //         };
+    //         let gen = MyAffinePoint::<N>::generator();
+    //         let k_mul = match gen {
+    //             APTypes::P384(gen) => MyAffinePoint::<48>::double_and_add(
+    //                 // Scalar multiplication of k with Generator point for the curve
+    //                 gen,
+    //                 k.clone(),
+    //                 &a,
+    //                 &b,
+    //                 &modp,
+    //             ),
+    //             _ => unimplemented!(),
+    //         };
 
-            // Calculate `r` and  `s` components which together constitute an ECDSA signature.
-            r = k_mul.x % &g_ord;
-            if r != BigInt::from(0) {
-                let k_inverse = k.mod_inverse(&g_ord).unwrap();
-                let sk_bigint = BigInt::from_bytes_be(Sign::Plus, &sk);
-                s = (k_inverse * (&z + (&r * sk_bigint) % &g_ord)) % &g_ord;
-                if s != BigInt::from(0) {
-                    break;
-                }
-            }
-        }
-        (r, s)
-    }
+    //         // Calculate `r` and  `s` components which together constitute an ECDSA signature.
+    //         r = k_mul.x % &g_ord;
+    //         if r != BigInt::from(0) {
+    //             let k_inverse = k.mod_inverse(&g_ord).unwrap();
+    //             let sk_bigint = BigInt::from_bytes_be(Sign::Plus, &sk);
+    //             s = (k_inverse * (&z + (&r * sk_bigint) % &g_ord)) % &g_ord;
+    //             if s != BigInt::from(0) {
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     (r, s)
+    // }
 
     /// Given a `message`, `signature` and the `corresponding public key` of the private key used to generate the signature,
     /// returns a `Ok(true)` value if verification suceeds or an Error. 
